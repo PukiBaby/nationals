@@ -66,21 +66,11 @@ void initialize() {
     }
   });
 
-  // watch for autonomous initialization
-  static pros::Task autonomous_task([]() {
-    while (true) {
-      if (autonomous_is_running) {
-        run_autonomous(autonomous_selection_variable, 0);
-      }
-      pros::delay(100);
-    }
-  });
-
   // watch for autonomous abort (task must outlive initialize)
   static pros::Task autonomous_abort_task([]() {
     while (true) {
       if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B)) {
-        autonomous_task.suspend();
+        // autonomous_task.suspend();
       }
       pros::delay(100);
     }
@@ -185,7 +175,7 @@ void autonomous() {
 
   // solo awp option #2
   chassis.setPose(0, 0, 90);
-  chassis.moveToPoint(31.5, 0, 2000, {.maxSpeed = 127});
+  chassis.moveToPoint(32.5, 0, 2000, {.maxSpeed = 127});
   chassis.turnToHeading(180, 500);
   pros::Task([]() {
     pros::delay(500);
@@ -213,7 +203,7 @@ void autonomous() {
       pros::delay(20); // sampling period
     }
   });
-  chassis.moveToPose(32.5, -9.2 - 1, 182, 1600, {.maxSpeed = 127});
+  chassis.moveToPose(32.5, -12, 182, 1600, {.maxSpeed = 127});
   pros::delay(1900);
   pros::Task([]() {
     outtake_value = false;
@@ -222,8 +212,7 @@ void autonomous() {
     blocker.set_value(blocker_value);
     intake_mg.move(127);
   });
-  chassis.moveToPose(32.5, 32.6, 180, 1000,
-                     {.forwards = false, .maxSpeed = 127});
+  /*
   pros::Task([]() {
     pros::delay(1100);
     outtake_value = false;
@@ -260,7 +249,8 @@ void autonomous() {
     blocker_value = false; // switched, open
     blocker.set_value(blocker_value);
     intake_mg.move(127);
-  });
+  });*/
+
   /*
     //high goal left side
   intake_mg.move(100);
@@ -406,7 +396,25 @@ void autonomous() {
 }
 
 void opcontrol() {
+  autonomous_is_running = true;
+  pros::lcd::set_text(6, "Autonomous mode.");
+  if (autonomous_is_running == true) {
+    autonomous_selection_variable = autonomous_routine_class::test;
+    pros::Task autonomous_task([](void* param) {
+        auto selection_ptr = static_cast<autonomous_routine_class*>(param);
+        run_autonomous(*selection_ptr, 0); // replace 0 with whatever int you need
+    }, &autonomous_selection_variable, "Autonomous Task");
+    while (autonomous_is_running) {
+      if (master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
+        autonomous_task.suspend();
+        autonomous_is_running = false;
+      }
+      pros::delay(100);
+    }
+  }
+
   // Defaults
+  pros::lcd::set_text(6, "Driving mode.");
   park.set_value(park_value);
   scraper.set_value(scraper_value);
   descore_value = false;
@@ -432,7 +440,7 @@ void opcontrol() {
     }
 
     else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) &&
-             !master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
+            !master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
       blocker_value = false;
       blocker.set_value(blocker_value);
       outtake_value = false;
@@ -442,7 +450,7 @@ void opcontrol() {
     }
 
     else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) &&
-             !master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { // Descore macro
+            !master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) { // Descore macro
 
       /*
       chassis.setPose(0, 0, 180);
@@ -506,4 +514,4 @@ void opcontrol() {
     // delay to save resources
     pros::delay(25);
   }
-}
+}  

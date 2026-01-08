@@ -21,8 +21,9 @@
 #include <atomic> // Types that multiple threads can simultaneously operate on without causing undefined behavior.
 
 bool autonomous_is_running = false;
+bool run_autonomous_straight = false;
 autonomous_routine_class autonomous_selection_variable;
-int run_autonomous (autonomous_routine_class selection, int stage = 0)
+void run_autonomous (autonomous_routine_class selection, int stage = 0)
 {
     // Determine the number of stages
     int limit;
@@ -38,13 +39,14 @@ int run_autonomous (autonomous_routine_class selection, int stage = 0)
             break;
         default:
             pros::lcd::set_text(7, "Invalid autonomous selection.");
-            return 0; // Exit function
+            return; // Exit function
     }
 
     // Do not permit any stages past the final stage to be run
     if (stage >= limit) { // Run stages 0, 1, 2, ..., limit - 1, i.e. the number of stages run is the variable limit.
-        pros::lcd::set_text(7, "The autonomous routine has finished.");
-        return 1;
+        pros::lcd::set_text(7, "The autonomous routine has finished. You can drive now.");
+        autonomous_is_running = false;
+        return;
     }
 
     // Run the selected stage
@@ -77,8 +79,8 @@ int run_autonomous (autonomous_routine_class selection, int stage = 0)
     }
 
     // Recursive logic to call the next stage
-    while (!master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) { // Wait for user input to move on
-        pros::lcd::set_text(7, "Press X to move to the next stage.");
+    while (!master.get_digital(pros::E_CONTROLLER_DIGITAL_B) && !(run_autonomous_straight == true)) { // Wait for user input to move on
+        pros::lcd::set_text(7, "Press B to move to the next stage.");
         pros::delay(100);
     }
     run_autonomous (selection, stage + 1); // Call the next stage
