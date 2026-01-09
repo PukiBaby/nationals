@@ -175,7 +175,7 @@ void autonomous() {
 
   // solo awp option #2
   chassis.setPose(0, 0, 90);
-  chassis.moveToPoint(32.5, 0, 2000, {.maxSpeed = 127});
+  chassis.moveToPoint(38.562, 0, 2000, {.maxSpeed = 127});
   chassis.turnToHeading(180, 500);
   pros::Task([]() {
     pros::delay(500);
@@ -203,7 +203,7 @@ void autonomous() {
       pros::delay(20); // sampling period
     }
   });
-  chassis.moveToPose(32.5, -12, 182, 1600, {.maxSpeed = 127});
+  chassis.moveToPose(36.562, -10.058, 180, 1600, {.maxSpeed = 127});
   pros::delay(1900); 
   pros::Task([]() { // Storage
     outtake_value = false;
@@ -214,12 +214,7 @@ void autonomous() {
     pros::delay(1000); // Tune this
     intake_mg.move(0);
   });
-  chassis.moveToPose(32.5, -6, 182, 1600, {.forwards = false, .maxSpeed = 127});
-  pros::Task([]() { // Outtake into top
-    intake_mg.move(127);
-    scraper_value = false;
-    scraper.set_value(scraper_value);
-  });
+  chassis.moveToPose(36.562, 9, 0, 1600, {.forwards = false, .maxSpeed = 127});
 
   /*
   pros::Task([]() { // Watch for opponent color (need to have both options and a variable for our team)
