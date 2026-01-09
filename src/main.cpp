@@ -204,15 +204,44 @@ void autonomous() {
     }
   });
   chassis.moveToPose(32.5, -12, 182, 1600, {.maxSpeed = 127});
-  pros::delay(1900);
-  pros::Task([]() {
+  pros::delay(1900); 
+  pros::Task([]() { // Storage
     outtake_value = false;
     outtake_pneumatics.set_value(outtake_value);
     blocker_value = true;
     blocker.set_value(blocker_value);
     intake_mg.move(127);
+    pros::delay(1000); // Tune this
+    intake_mg.move(0);
   });
+  chassis.moveToPose(32.5, -6, 182, 1600, {.forwards = false, .maxSpeed = 127});
+  pros::Task([]() { // Outtake into top
+    intake_mg.move(127);
+    scraper_value = false;
+    scraper.set_value(scraper_value);
+  });
+
   /*
+  pros::Task([]() { // Watch for opponent color (need to have both options and a variable for our team)
+    int counter = 0;
+    while (true) {
+      // if opponent color
+        intake_mg.move(-127); // reverse
+        counter = 0;
+      // if not opponent color
+        counter += 100;
+      // if counter = 500
+        intake_mg.move(0);
+      pros::delay(100);
+    }
+  });
+  */
+  
+  /*
+  pros::delay(3000);
+  blocker_value = true;
+  blocker.set_value(blocker_value);
+  chassis.moveToPose(32.5, 7.5, 180, 1000, {.maxSpeed = 127});
   pros::Task([]() {
     pros::delay(1100);
     outtake_value = false;
