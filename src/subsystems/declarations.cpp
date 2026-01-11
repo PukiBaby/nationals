@@ -25,7 +25,6 @@ pros::MotorGroup left_mg({DRIVING_LB_PORT, DRIVING_LM_PORT, DRIVING_LF_PORT},
 // Game mechanisms
 
 pros::MotorGroup intake_mg({MOTOR_UPTAKE_PORT, MOTOR_INTAKE_PORT});
-pros::Optical optical_sensor(OPTICAL_SENSOR_PORT);
 
 // Pneumatics mechanisms
 
@@ -50,9 +49,11 @@ pros::Rotation horizontalEnc(H_ENC_PORT);
 pros::Rotation verticalEnc(V_ENC_PORT);
 pros::IMU imu(IMU_PORT);
 
-// More sensors
+// More Sensors
 
 pros::Distance front_dist(FRONT_DISTANCE_SENSOR_PORT);
+pros::Distance ball_facing_dist(BALL_FACING_DISTANCE_SENSOR_PORT);
+pros::Optical optical_sensor(OPTICAL_SENSOR_PORT);
 
 // LEMLIB
 

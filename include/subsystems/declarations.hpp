@@ -52,7 +52,7 @@
 #define BALL_FACING_DISTANCE_SENSOR_PORT 6
 #define OPTICAL_SENSOR_PORT 10
 
-#define OUR_COLOR "Blue" // or "Red"
+#define OUR_COLOR BlockColor::Blue // or BlockColor::Red
 
 // Odometry
 
@@ -102,6 +102,7 @@ extern pros::IMU imu;
 // Sensors
 
 extern pros::Distance front_dist;
+extern pros::Distance ball_facing_dist;
 extern pros::Optical optical_sensor;
 
 // LEMLIB

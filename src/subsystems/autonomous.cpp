@@ -34,55 +34,17 @@ void run_autonomous (autonomous_routine_class selection)
             case autonomous_routine_class::test:
                 switch (stage) {
                     case 0:
+                        chassis.setPose(0, 0, 0);
+                        oscillateHeading_cycles(10, 10.0);
                         break;
                     case 1:
+                        chassis.moveToPoint(0, 10, 1000);
                         break;
-                    // Placeholder
                 }
                 break;
             case autonomous_routine_class::solo_awp_2:
                 switch (stage) {
                     case 0:
-                        chassis.setPose(0, 0, 90);
-                        chassis.moveToPoint(38.562, 0, 2000, {.maxSpeed = 127});
-                        chassis.turnToHeading(180, 500);
-                        pros::Task([]() {
-                            pros::delay(500);
-                            scraper_value = true;
-                            scraper.set_value(scraper_value);
-                        });
-                        pros::Task([]() {
-                            int consecutive = 0;
-                            const int needed = 3; // require 3 consistent reads
-                            const int threshold = 135;
-                            while (chassis.isInMotion()) {
-                            int d = front_dist.get(); // mm
-                            // optional: log to LCD so you can see the values
-                            pros::lcd::set_text(3, ("dist: " + std::to_string(d)).c_str());
-
-                            if (d > 10 && d < threshold) { // ignore 0/invalid readings
-                                consecutive++;
-                                if (consecutive >= needed) {
-                                chassis.cancelMotion();
-                                break;
-                                }
-                            } else {
-                                consecutive = 0;
-                            }
-                            pros::delay(20); // sampling period
-                            }
-                        });
-                        chassis.moveToPose(36.562, -10.058, 180, 1600, {.maxSpeed = 127});
-                        pros::delay(1900); 
-                        pros::Task([]() { // Storage
-                            outtake_value = false;
-                            outtake_pneumatics.set_value(outtake_value);
-                            blocker_value = true;
-                            blocker.set_value(blocker_value);
-                            intake_mg.move(127);
-                            pros::delay(1000); // Tune this
-                            intake_mg.move(0);
-                        });
                         break;
                     // Placeholder
                 }
@@ -93,7 +55,7 @@ void run_autonomous (autonomous_routine_class selection)
                         break;
                     case 1:
                         break;
-                    // Placeholder; add more soon
+                    // Placeholder
                 }
                 break;
         }
@@ -107,5 +69,6 @@ void run_autonomous (autonomous_routine_class selection)
         // Increment
         stage += 1;
     }
+    autonomous_is_running = false;
 }
 

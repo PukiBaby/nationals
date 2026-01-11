@@ -205,7 +205,6 @@ void autonomous() {
     }
   });
   chassis.moveToPose(35.41, -15.02, 180, 1600, {.maxSpeed = 127}, false);
-  pros::delay(1500); // Tune this (this determines how long you wait at the loader, the task is not blocking)
   pros::Task([]() { // Storage
     outtake_value = false;
     outtake_pneumatics.set_value(outtake_value);
@@ -213,7 +212,10 @@ void autonomous() {
     blocker.set_value(blocker_value);
     intake_mg.move(127);
   });
-  intake_mg.move(127);
+  number_of_blocks_collected = 0;
+  collect_blocks_encoder(3, 3000);
+  oscillateHeading_while(number_of_blocks_collected < 3, 10); 
+  // Do the motions in oscillateHeading_while need to be async to block moveToPose in LemLib? Or does async only block other things not related to the chassis?
   chassis.moveToPose(35.76-1, 16.44+2, 180, 1600, {.forwards = false, .maxSpeed = 127}, false);
   blocker_value = false;
   blocker.set_value(blocker_value);
@@ -404,7 +406,7 @@ void autonomous() {
 }
 
 void opcontrol() {
-  autonomous_is_running = false;
+  autonomous_is_running = true; // change this to run auto skills in driver
   pros::lcd::set_text(6, "Autonomous mode.");
   if (autonomous_is_running == true) {
     autonomous_selection_variable = autonomous_routine_class::solo_awp_2;
