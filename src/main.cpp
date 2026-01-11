@@ -2,6 +2,7 @@
 
 #include "subsystems\declarations.hpp"
 #include "subsystems\autonomous.hpp"
+#include "subsystems\helper_functions.hpp"
 
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/chassis.hpp"
@@ -175,7 +176,7 @@ void autonomous() {
 
   // solo awp option #2
   chassis.setPose(0, 0, 90);
-  chassis.moveToPoint(38.562, 0, 2000, {.maxSpeed = 127});
+  chassis.moveToPoint(35.41, 0, 2000, {.maxSpeed = 127});
   chassis.turnToHeading(180, 500);
   pros::Task([]() {
     pros::delay(500);
@@ -203,42 +204,23 @@ void autonomous() {
       pros::delay(20); // sampling period
     }
   });
-  chassis.moveToPose(36.562, -10.058, 180, 1600, {.maxSpeed = 127});
-  pros::delay(1900); 
+  chassis.moveToPose(35.41, -15.02, 180, 1600, {.maxSpeed = 127}, false);
+  pros::delay(1500); // Tune this (this determines how long you wait at the loader, the task is not blocking)
   pros::Task([]() { // Storage
     outtake_value = false;
     outtake_pneumatics.set_value(outtake_value);
     blocker_value = true;
     blocker.set_value(blocker_value);
     intake_mg.move(127);
-    pros::delay(1000); // Tune this
-    intake_mg.move(0);
   });
-  chassis.moveToPose(36.562, 9, 0, 1600, {.forwards = false, .maxSpeed = 127});
-
-  /*
-  pros::Task([]() { // Watch for opponent color (need to have both options and a variable for our team)
-    int counter = 0;
-    while (true) {
-      // if opponent color
-        intake_mg.move(-127); // reverse
-        counter = 0;
-      // if not opponent color
-        counter += 100;
-      // if counter = 500
-        intake_mg.move(0);
-      pros::delay(100);
-    }
-  });
-  */
-  
-  /*
-  pros::delay(3000);
-  blocker_value = true;
+  intake_mg.move(127);
+  chassis.moveToPose(35.76-1, 16.44+2, 180, 1600, {.forwards = false, .maxSpeed = 127}, false);
+  blocker_value = false;
   blocker.set_value(blocker_value);
-  chassis.moveToPose(32.5, 7.5, 180, 1000, {.maxSpeed = 127});
+
+  pros::delay(1000); // tune
   pros::Task([]() {
-    pros::delay(1100);
+    // pros::delay(1100);
     outtake_value = false;
     outtake_pneumatics.set_value(outtake_value);
     blocker_value = false;
@@ -250,14 +232,16 @@ void autonomous() {
   pros::delay(3000);
   blocker_value = true;
   blocker.set_value(blocker_value);
-  chassis.moveToPose(32.5, 7.5, 180, 1000, {.maxSpeed = 127});
-  chassis.moveToPoint(15.1, 17.2, 1000, {.minSpeed = 110, .earlyExitRange = 3});
+  chassis.moveToPose(32.5, 7.5, 180, 1000, {.maxSpeed = 127}); // move backwards
+  chassis.moveToPoint(15.1, 17.2, 1000, {.maxSpeed = 110, .earlyExitRange = 3}); // 
   chassis.moveToPose(6.2, 27.6, 312, 3000, {.maxSpeed = 50});
-  chassis.moveToPose(-0.5, 32.1, 315, 2000, {.maxSpeed = 127});
+  chassis.moveToPose(-0.5, 32.1, 315, 2000, {.maxSpeed = 127}); // go to center -1.712
+  // chassis.moveToPose(-1.712, 32.1+1.712, 315, 2000, {.maxSpeed = 127}); 
   pros::Task([]() {
     pros::delay(800);
     intake_mg.move(-115); // wait 0.5s
   });
+  /*
   pros::delay(2200);
   intake_mg.move(127);
   chassis.moveToPose(6.3, 23.7, 275, 1000,
@@ -420,13 +404,30 @@ void autonomous() {
 }
 
 void opcontrol() {
-  autonomous_is_running = true;
+  autonomous_is_running = false;
   pros::lcd::set_text(6, "Autonomous mode.");
   if (autonomous_is_running == true) {
-    autonomous_selection_variable = autonomous_routine_class::test;
+    autonomous_selection_variable = autonomous_routine_class::solo_awp_2;
+    // Determine the number of stages
+    switch (autonomous_selection_variable) {
+        case autonomous_routine_class::test:
+            limit = 2; // Placeholder, 2 stages
+            break;
+        case autonomous_routine_class::solo_awp_2:
+            limit = 1; // Placeholder, 1 stage
+            break;
+        case autonomous_routine_class::solo_awp_1:
+            limit = 2; // Placeholder, 2 stages
+            break;
+        default:
+            pros::lcd::set_text(7, "Invalid autonomous selection.");
+            autonomous_is_running = false;
+    }
+  }
+  if (autonomous_is_running == true) {
     pros::Task autonomous_task([](void* param) {
         auto selection_ptr = static_cast<autonomous_routine_class*>(param);
-        run_autonomous(*selection_ptr, 0); // replace 0 with whatever int you need
+        run_autonomous(*selection_ptr);
     }, &autonomous_selection_variable, "Autonomous Task");
     while (autonomous_is_running) {
       if (master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
@@ -444,6 +445,9 @@ void opcontrol() {
   descore_value = false;
   descore.set_value(descore_value);
   blocker.set_value(blocker_value);
+
+  // Testing coordinates for solo AWP #2
+  // chassis.setPose(0, 0, 90);
   
   while (true) {
     int leftY = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);

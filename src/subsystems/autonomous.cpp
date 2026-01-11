@@ -2,6 +2,7 @@
 
 #include "subsystems\declarations.hpp"
 #include "subsystems\autonomous.hpp"
+#include "subsystems\helper_functions.hpp"
 
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/chassis.hpp"
@@ -23,106 +24,88 @@
 bool autonomous_is_running = false;
 bool run_autonomous_straight = false;
 autonomous_routine_class autonomous_selection_variable;
-void run_autonomous (autonomous_routine_class selection, int stage = 0)
+int limit;
+void run_autonomous (autonomous_routine_class selection)
 {
-    // Determine the number of stages
-    int limit;
-    switch (selection) {
-        case autonomous_routine_class::test:
-            limit = 2; // Placeholder, 2 stages
-            break;
-        case autonomous_routine_class::solo_awp_2:
-            limit = 1; // Placeholder, 1 stage
-            break;
-        case autonomous_routine_class::solo_awp_1:
-            limit = 2; // Placeholder, 2 stages
-            break;
-        default:
-            pros::lcd::set_text(7, "Invalid autonomous selection.");
-            return; // Exit function
-    }
+    int stage = 0;
+    while (stage < limit) {
+        // Run the selected stage
+        switch (selection) {
+            case autonomous_routine_class::test:
+                switch (stage) {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    // Placeholder
+                }
+                break;
+            case autonomous_routine_class::solo_awp_2:
+                switch (stage) {
+                    case 0:
+                        chassis.setPose(0, 0, 90);
+                        chassis.moveToPoint(38.562, 0, 2000, {.maxSpeed = 127});
+                        chassis.turnToHeading(180, 500);
+                        pros::Task([]() {
+                            pros::delay(500);
+                            scraper_value = true;
+                            scraper.set_value(scraper_value);
+                        });
+                        pros::Task([]() {
+                            int consecutive = 0;
+                            const int needed = 3; // require 3 consistent reads
+                            const int threshold = 135;
+                            while (chassis.isInMotion()) {
+                            int d = front_dist.get(); // mm
+                            // optional: log to LCD so you can see the values
+                            pros::lcd::set_text(3, ("dist: " + std::to_string(d)).c_str());
 
-    // Do not permit any stages past the final stage to be run
-    if (stage >= limit) { // Run stages 0, 1, 2, ..., limit - 1, i.e. the number of stages run is the variable limit.
-        pros::lcd::set_text(7, "The autonomous routine has finished. You can drive now.");
-        autonomous_is_running = false;
-        return;
-    }
-
-    // Run the selected stage
-    switch (selection) {
-        case autonomous_routine_class::test:
-            switch (stage) {
-                case 0:
-                    break;
-                case 1:
-                    break;
-                // Placeholder
-            }
-            break;
-        case autonomous_routine_class::solo_awp_2:
-            switch (stage) {
-                case 0:
-                    chassis.setPose(0, 0, 90);
-                    chassis.moveToPoint(38.562, 0, 2000, {.maxSpeed = 127});
-                    chassis.turnToHeading(180, 500);
-                    pros::Task([]() {
-                        pros::delay(500);
-                        scraper_value = true;
-                        scraper.set_value(scraper_value);
-                    });
-                    pros::Task([]() {
-                        int consecutive = 0;
-                        const int needed = 3; // require 3 consistent reads
-                        const int threshold = 135;
-                        while (chassis.isInMotion()) {
-                        int d = front_dist.get(); // mm
-                        // optional: log to LCD so you can see the values
-                        pros::lcd::set_text(3, ("dist: " + std::to_string(d)).c_str());
-
-                        if (d > 10 && d < threshold) { // ignore 0/invalid readings
-                            consecutive++;
-                            if (consecutive >= needed) {
-                            chassis.cancelMotion();
-                            break;
+                            if (d > 10 && d < threshold) { // ignore 0/invalid readings
+                                consecutive++;
+                                if (consecutive >= needed) {
+                                chassis.cancelMotion();
+                                break;
+                                }
+                            } else {
+                                consecutive = 0;
                             }
-                        } else {
-                            consecutive = 0;
-                        }
-                        pros::delay(20); // sampling period
-                        }
-                    });
-                    chassis.moveToPose(36.562, -10.058, 180, 1600, {.maxSpeed = 127});
-                    pros::delay(1900); 
-                    pros::Task([]() { // Storage
-                        outtake_value = false;
-                        outtake_pneumatics.set_value(outtake_value);
-                        blocker_value = true;
-                        blocker.set_value(blocker_value);
-                        intake_mg.move(127);
-                        pros::delay(1000); // Tune this
-                        intake_mg.move(0);
-                    });
-                    break;
-                // Placeholder
-            }
-            break;
-        case autonomous_routine_class::solo_awp_1:
-            switch (stage) {
-                case 0:
-                    break;
-                case 1:
-                    break;
-                // Placeholder; add more soon
-            }
-            break;
-    }
+                            pros::delay(20); // sampling period
+                            }
+                        });
+                        chassis.moveToPose(36.562, -10.058, 180, 1600, {.maxSpeed = 127});
+                        pros::delay(1900); 
+                        pros::Task([]() { // Storage
+                            outtake_value = false;
+                            outtake_pneumatics.set_value(outtake_value);
+                            blocker_value = true;
+                            blocker.set_value(blocker_value);
+                            intake_mg.move(127);
+                            pros::delay(1000); // Tune this
+                            intake_mg.move(0);
+                        });
+                        break;
+                    // Placeholder
+                }
+                break;
+            case autonomous_routine_class::solo_awp_1:
+                switch (stage) {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    // Placeholder; add more soon
+                }
+                break;
+        }
 
-    // Recursive logic to call the next stage
-    while (!master.get_digital(pros::E_CONTROLLER_DIGITAL_B) && !(run_autonomous_straight == true)) { // Wait for user input to move on
-        pros::lcd::set_text(7, "Press B to move to the next stage.");
-        pros::delay(100);
+        // Delay until user input says to move to the next stage
+        while (!master.get_digital(pros::E_CONTROLLER_DIGITAL_B) && !pros::competition::is_autonomous()) { // Wait for user input to move on when running autonomous in driver control mode
+            pros::lcd::set_text(7, "Press B to move to the next stage.");
+            pros::delay(100);
+        }
+
+        // Increment
+        stage += 1;
     }
-    run_autonomous (selection, stage + 1); // Call the next stage
 }
 

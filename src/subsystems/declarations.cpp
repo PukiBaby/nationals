@@ -2,6 +2,7 @@
 
 #include "subsystems\declarations.hpp"
 #include "subsystems\autonomous.hpp"
+#include "subsystems\helper_functions.hpp"
 
 #include "pros/ai_vision.hpp"
 #include "pros/vision.hpp"
@@ -24,7 +25,7 @@ pros::MotorGroup left_mg({DRIVING_LB_PORT, DRIVING_LM_PORT, DRIVING_LF_PORT},
 // Game mechanisms
 
 pros::MotorGroup intake_mg({MOTOR_UPTAKE_PORT, MOTOR_INTAKE_PORT});
-pros::Vision vision_sensor(VISION_SENSOR_PORT);
+pros::Optical optical_sensor(OPTICAL_SENSOR_PORT);
 
 // Pneumatics mechanisms
 

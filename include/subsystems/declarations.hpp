@@ -50,7 +50,9 @@
 #define FRONT_DISTANCE_SENSOR_PORT 16
 #define BACK_DISTANCE_SENSOR_PORT 6
 #define BALL_FACING_DISTANCE_SENSOR_PORT 6
-#define VISION_SENSOR_PORT 10
+#define OPTICAL_SENSOR_PORT 10
+
+#define OUR_COLOR "Blue" // or "Red"
 
 // Odometry
 
@@ -97,9 +99,10 @@ extern pros::Rotation horizontalEnc;
 extern pros::Rotation verticalEnc;
 extern pros::IMU imu;
 
-// More sensors
+// Sensors
 
 extern pros::Distance front_dist;
+extern pros::Optical optical_sensor;
 
 // LEMLIB
 

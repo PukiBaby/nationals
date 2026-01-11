@@ -24,11 +24,13 @@
 
 enum class autonomous_routine_class {test, solo_awp_1, solo_awp_2};
 
-extern void run_autonomous (autonomous_routine_class selection, int stage); // function declaration
+extern void run_autonomous (autonomous_routine_class selection); // function declaration
 
 extern bool autonomous_is_running;
 extern bool run_autonomous_straight;
 extern autonomous_routine_class autonomous_selection_variable;
+
+extern int limit;
 
 // std::atomic<bool> pause_autonomous;
 // std::atomic<bool> abort_autonomous;
